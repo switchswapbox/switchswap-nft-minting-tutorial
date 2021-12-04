@@ -37,15 +37,13 @@ jobs:
         if: ${{ steps.getTag.outputs.tag != 'main' }}
         run: npm run buildProd
 
-      - name: IPFS Pinata deploy GitHub action
+      - name: IPFS Upload to Crust Gateway
         if: ${{ steps.getTag.outputs.tag != 'main' }}
         id: pinIpfs
-        uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.3
+        uses: crustio/ipfs-upload-action@v2.0.2
         with:
-          pin-name: Crust Live Interface ${{ steps.getTag.outputs.tag }}
           path: "./build"
-          pinata-api-key: ${{ secrets.PINATA_API_KEY }}
-          pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
+          seeds: ${{ secrets.CRUST_SEEDS }}
 
       - name: Pin to Crust - Get Hash
         id: pinIpfsCrust
@@ -87,6 +85,6 @@ jobs:
             You can also access Crust Live directly from an IPFS gateway.
             IPFS gateways:
             - https://ipfs.io/ipfs/${{ steps.pinIpfs.outputs.hash }}/
-            - https://gateway.pinata.cloud/ipfs/${{ steps.pinIpfs.outputs.hash }}/
+            - https://gw.crustapps.net/ipfs/${{ steps.pinIpfs.outputs.hash }}/
             - https://ipfs.infura.io/ipfs/${{ steps.pinIpfs.outputs.hash }}/
             Visit the [IPFS Gateway Checker](https://ipfs.github.io/public-gateway-checker/) for a complete list of gateways available.
