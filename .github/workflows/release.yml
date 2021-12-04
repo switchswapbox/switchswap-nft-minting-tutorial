@@ -42,7 +42,7 @@ jobs:
         id: pinIpfs
         uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.3
         with:
-          pin-name: Switchswap Interface Dev ${{ steps.getTag.outputs.tag }}
+          pin-name: Crust Live Interface ${{ steps.getTag.outputs.tag }}
           path: "./build"
           pinata-api-key: ${{ secrets.PINATA_API_KEY }}
           pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
@@ -58,10 +58,10 @@ jobs:
           size: 200000000
           seeds: ${{ secrets.CRUST_SEEDS }}
 
-      - name: Update DNSLink Switchswap.io
+      - name: Update DNSLink crust.live
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
-          RECORD_DOMAIN: "switchswap.io"
+          RECORD_DOMAIN: "crust.live"
           RECORD_NAME: "_dnslink"
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         id: dnslink_sw
@@ -83,8 +83,8 @@ jobs:
             - CID: `${{ steps.pinIpfs.outputs.hash }}`
             This release is stored and registered on Crust Network
             Registration: https://crust.subscan.io/extrinsic/${{ steps.pinIpfsCrust.outputs.txHash }}
-            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [switchswap.io](https://switchswap.io).
-            You can also access SwitchSwap directly from an IPFS gateway.
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [crust.live](https://crust.live).
+            You can also access Crust Live directly from an IPFS gateway.
             IPFS gateways:
             - https://ipfs.io/ipfs/${{ steps.pinIpfs.outputs.hash }}/
             - https://gateway.pinata.cloud/ipfs/${{ steps.pinIpfs.outputs.hash }}/
