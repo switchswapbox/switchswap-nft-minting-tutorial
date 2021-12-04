@@ -37,7 +37,7 @@ jobs:
         if: ${{ steps.getTag.outputs.tag != 'main' }}
         run: npm run buildProd
 
-      - name: IPFS Upload to Crust Gateway
+      - name: Upload to Crust Gateway
         if: ${{ steps.getTag.outputs.tag != 'main' }}
         id: pinIpfs
         uses: crustio/ipfs-upload-action@v2.0.2
@@ -45,15 +45,12 @@ jobs:
           path: "./build"
           seeds: ${{ secrets.CRUST_SEEDS }}
 
-      - name: Pin to Crust - Get Hash
-        id: pinIpfsCrust
-        if: ${{ steps.getTag.outputs.tag != 'main' }}
-        uses: switchswapbox/ipfs-crust-action@v2.0.9
+      - name: Pin to Crust
+        uses: crustio/ipfs-crust-action@v2.0.3
         continue-on-error: true
         timeout-minutes: 2
         with:
           cid: ${{ steps.pinIpfs.outputs.hash }}
-          size: 200000000
           seeds: ${{ secrets.CRUST_SEEDS }}
 
       - name: Update DNSLink crust.live
@@ -79,8 +76,7 @@ jobs:
           body: |
             IPFS hash of the deployment:
             - CID: `${{ steps.pinIpfs.outputs.hash }}`
-            This release is stored and registered on Crust Network
-            Registration: https://crust.subscan.io/extrinsic/${{ steps.pinIpfsCrust.outputs.txHash }}
+
             The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [crust.live](https://crust.live).
             You can also access Crust Live directly from an IPFS gateway.
             IPFS gateways:
