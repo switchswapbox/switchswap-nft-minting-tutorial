@@ -1,0 +1,92 @@
+# Release Switchswap NFT Minting Tutorial
+
+name: CI
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
+      - name: Get Tag Version
+        id: getTag
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+
+      - name: Print Version
+        run: echo ${{ steps.getTag.outputs.tag }}
+
+      - name: Set up node
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        run: npm install
+
+      - name: Build the IPFS bundle
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        run: npm run buildProd
+
+      - name: IPFS Pinata deploy GitHub action
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        id: pinIpfs
+        uses: anantaramdas/ipfs-pinata-deploy-action@v1.6.3
+        with:
+          pin-name: Switchswap Interface Dev ${{ steps.getTag.outputs.tag }}
+          path: "./build"
+          pinata-api-key: ${{ secrets.PINATA_API_KEY }}
+          pinata-secret-api-key: ${{ secrets.PINATA_API_SECRET_KEY }}
+
+      - name: Pin to Crust - Get Hash
+        id: pinIpfsCrust
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        uses: switchswapbox/ipfs-crust-action@v2.0.9
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          cid: ${{ steps.pinIpfs.outputs.hash }}
+          size: 200000000
+          seeds: ${{ secrets.CRUST_SEEDS }}
+
+      - name: Update DNSLink Switchswap.io
+        env:
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: "switchswap.io"
+          RECORD_NAME: "_dnslink"
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        id: dnslink_sw
+        uses: textileio/cloudflare-update-dnslink@v2
+        with:
+          cid: ${{ steps.pinIpfs.outputs.hash }}
+
+      - name: Create GitHub Release
+        if: ${{ steps.getTag.outputs.tag != 'main' }}
+        id: create_release
+        uses: actions/create-release@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.getTag.outputs.tag }}
+          release_name: Release ${{ steps.getTag.outputs.tag }}
+          body: |
+            IPFS hash of the deployment:
+            - CID: `${{ steps.pinIpfs.outputs.hash }}`
+            This release is stored and registered on Crust Network
+            Registration: https://crust.subscan.io/extrinsic/${{ steps.pinIpfsCrust.outputs.txHash }}
+            The latest release is always accessible via our alias to the Cloudflare IPFS gateway at [switchswap.io](https://switchswap.io).
+            You can also access SwitchSwap directly from an IPFS gateway.
+            IPFS gateways:
+            - https://ipfs.io/ipfs/${{ steps.pinIpfs.outputs.hash }}/
+            - https://gateway.pinata.cloud/ipfs/${{ steps.pinIpfs.outputs.hash }}/
+            - https://ipfs.infura.io/ipfs/${{ steps.pinIpfs.outputs.hash }}/
+            Visit the [IPFS Gateway Checker](https://ipfs.github.io/public-gateway-checker/) for a complete list of gateways available.
