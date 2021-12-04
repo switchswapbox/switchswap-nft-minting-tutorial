@@ -128,14 +128,14 @@ function App() {
   }
 
   return (
-    <div>
+    <div style={{ paddingLeft: "50px" }}>
       {/* Get Signature */}
-      <h1>Get Signature</h1>
+      <h1>1. Get Signature</h1>
       <button onClick={getSignatureHandle}>Get Signature</button>
       <div>{authHeader}</div>
 
       {/* Upload File */}
-      <h1>Upload File</h1>
+      <h1>2. Upload File</h1>
       <input
         type="file"
         onChange={(e) => {
@@ -156,7 +156,7 @@ function App() {
       )}
 
       {/* Upload Metadata */}
-      <h1>Upload Metadata</h1>
+      <h1>3. Upload Metadata</h1>
       <div>Name</div>
       <input
         onChange={(e) => {
@@ -183,7 +183,7 @@ function App() {
       )}
 
       {/* Mint NFT */}
-      <h1>Mint NFT</h1>
+      <h1>4. Mint NFT</h1>
       <button onClick={mintNTF}>Mint NFT</button>
       <br />
       {txHash && (
