@@ -133,7 +133,7 @@ function App() {
       <button onClick={getSignatureHandle}>Get Signature</button>
       <div>{authHeader}</div>
 
-      <h1>2. Upload Image</h1>
+      {/* <h1>2. Upload Image</h1>
       <input
         type="file"
         onChange={(e) => {
@@ -179,7 +179,6 @@ function App() {
         </a>
       )}
 
-      {/* 
       <h1>4. Mint NFT</h1>
       <button onClick={mintNTF}>Mint NFT</button>
       <br />
