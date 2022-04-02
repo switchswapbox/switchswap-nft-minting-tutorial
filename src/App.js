@@ -35,6 +35,8 @@ function App() {
   const [metadataCid, setMetadataCid] = useState();
   const [tokenId, setTokenId] = useState();
   const [txHash, setTxHash] = useState();
+  const [selectedGw, setSelectedGw] = useState("https://gw-nft.crustapps.net");
+  const [message, setMessage] = useState("");
 
   const getSignatureHandle = async () => {
     const provider = await detectEthereumProvider();
@@ -43,7 +45,7 @@ function App() {
         method: "eth_chainId",
       });
 
-      if (parseInt(chainId, 16) === 137) {
+      if (true) {
         await provider.request({ method: "eth_requestAccounts" });
         const providerPolygon = new ethers.providers.Web3Provider(provider);
         const signer = providerPolygon.getSigner();
@@ -57,21 +59,28 @@ function App() {
   };
 
   const uploadImageHandle = async () => {
+    console.log("Create ipfs client");
+    setMessage("Creating IPFS client");
     const ipfs = create({
-      url: ipfsGateway + "/api/v0",
+      url: selectedGw + "/api/v0",
       headers: {
         authorization: "Basic " + authHeader,
       },
     });
 
+    console.log("Upload file");
+    setMessage("Waiting: Uploading file");
     const added = await ipfs.add(file);
+
+    console.log("Uploaded file");
+    setMessage("Uploaded file");
     pinW3Crust(authHeader, added.path, "image");
     setImageCid(added.path);
   };
 
   const uploadMetadataHandle = async () => {
     const ipfs = create({
-      url: ipfsGateway + "/api/v0",
+      url: selectedGw + "/api/v0",
       headers: {
         authorization: "Basic " + authHeader,
       },
@@ -129,11 +138,30 @@ function App() {
 
   return (
     <div style={{ paddingLeft: "50px" }}>
+      <label>Select a gateway:</label>
+      <select
+        value={selectedGw}
+        onChange={(e) => {
+          setSelectedGw(e.target.value);
+        }}
+      >
+        <option value="https://gw-nft.crustapps.net">
+          https://gw-nft.crustapps.net
+        </option>
+        <option value="https://gw.crustapps.net">
+          https://gw.crustapps.net
+        </option>
+        <option value="https://crustwebsites.net">
+          https://crustwebsites.net
+        </option>
+        <option value="https://crustipfs.xyz">https://crustipfs.xyz</option>
+      </select>
+      <div>Selected gateway url: {selectedGw}</div>
       <h1>1. Get Signature</h1>
       <button onClick={getSignatureHandle}>Get Signature</button>
       <div>{authHeader}</div>
 
-      {/* <h1>2. Upload Image</h1>
+      <h1>2. Upload Image</h1>
       <input
         type="file"
         onChange={(e) => {
@@ -143,16 +171,19 @@ function App() {
       <br />
       <button onClick={uploadImageHandle}>Upload</button>
       <br />
+      <br />
+      {message && <>Message: {message}</>}
+      <br />
       {imageCid && (
         <a
-          href={`https://gw.crustapps.net/ipfs/${imageCid}`}
+          href={`https://${selectedGw}/ipfs/${imageCid}`}
           target="_blank"
           rel="noreferrer"
         >
           File Link
         </a>
       )}
-
+      {/*
       <h1>3. Upload Metadata</h1>
       <div>Name</div>
       <input
